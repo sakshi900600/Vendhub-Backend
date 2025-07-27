@@ -35,7 +35,16 @@ app.use('/api/admin', adminRoutes); // USE NEW ADMIN ROUTES
 app.get('/', (req, res) => res.send('VendHub Backend API is running!'));
 
 // Start the server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-    console.log(`App is listening at port ${PORT}`)
-);
+// const PORT = process.env.PORT || 5000;
+// app.listen(PORT, () =>
+//     console.log(`App is listening at port ${PORT}`)
+// );
+
+
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000
+  app.listen(PORT, () => console.log(`Listening on ${PORT}`))
+}
+
+
+module.exports = app  
