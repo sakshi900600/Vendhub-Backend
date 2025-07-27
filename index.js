@@ -16,7 +16,7 @@ const adminRoutes = require('./routes/adminRoutes'); // IMPORT NEW ADMIN ROUTES
 const app = express();
 
 // Middleware
-app.use(cors()); // Make sure this is configured correctly for your frontend origin
+app.use(cors({ origin: true, credentials: true })); // Make sure this is configured correctly for your frontend origin
 app.use(express.json({ extended: false }));
 
 // MongoDB Connection
