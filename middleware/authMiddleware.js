@@ -1,11 +1,13 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // Adjust path if needed
+const User = require('../models/User');
 
 // Middleware to protect routes
 const protect = async (req, res, next) => {
     let token;
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        token = req.headers.authorization.split(' ')[1];
+
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
     }
 
     if (!token) {
@@ -20,10 +22,10 @@ const protect = async (req, res, next) => {
             return res.status(401).json({ msg: 'Not authorized, user not found' });
         }
 
-        req.user.role = decoded.role;
+        req.user.role = decoded.role; // Optional: only if you're storing role in token
         next();
     } catch (error) {
-        console.error('Token verification error:', error);
+        console.error('Token verification error:', error.message);
         res.status(401).json({ msg: 'Not authorized, token failed' });
     }
 };

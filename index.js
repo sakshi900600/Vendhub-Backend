@@ -12,12 +12,17 @@ dotenv.config();
 
 const authRoutes = require('./routes/authroutes'); // Corrected path
 const productRoutes = require('./routes/productRoutes'); // Corrected path
+const requirementRoutes = require('./routes/requirementRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 const app = express();
 
 // Middleware
+
 app.use(cors());
 app.use(express.json());
+app.use('/api/requirements', requirementRoutes);
+app.use('/api/orders', orderRoutes);
 
 // MongoDB Connection
 // Replaced connectDB() with direct mongoose.connect()

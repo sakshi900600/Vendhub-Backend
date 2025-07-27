@@ -11,11 +11,7 @@ router.post('/add', authorizeRoles('farmer'), productController.addProduct);
 
 // Get farmer's products - only farmers can view their products
 router.get('/my-products', authorizeRoles('farmer'), productController.getMyProducts);
-
-// Future routes:
-// router.put('/update/:id', authorizeRoles('farmer'), productController.updateProduct);
-// router.delete('/delete/:id', authorizeRoles('farmer'), productController.deleteProduct);
-
+router.put('/edit/:id', protect, authorizeRoles('farmer'), productController.editProduct);
 
 // Search farmer's products with optional keyword, category, and isActive filter
 router.get('/search-my-products', authorizeRoles('farmer'), productController.searchMyProducts);

@@ -74,6 +74,46 @@ exports.addProduct = async (req, res) => {
     }
 };
 
+
+
+// Edit/Update a product (Only the owner farmer can edit)
+exports.editProduct = async (req, res) => {
+    try {
+        const farmerId = req.user.id;
+        const productId = req.params.id;
+        const updates = req.body;
+
+        // Find the product and ensure the logged-in user owns it
+        const product = await Product.findOne({ _id: productId, owner: farmerId });
+
+        if (!product) {
+            return res.status(404).json({ msg: 'Product not found or access denied' });
+        }
+
+        // Only allow updatable fields
+        const allowedUpdates = ['name', 'stock', 'unit', 'price', 'description', 'category', 'imageUrl', 'isActive'];
+        allowedUpdates.forEach(field => {
+            if (updates[field] !== undefined) {
+                product[field] = updates[field];
+            }
+        });
+
+        await product.save();
+        res.status(200).json({ msg: 'Product updated successfully', product });
+
+    } catch (err) {
+        console.error('Error editing product:', err);
+        res.status(500).json({ msg: 'Server error while editing product.' });
+    }
+};
+
+
+
+
+
+
+
+
 // You can add more product-related functions here (e.g., updateProduct, getProductsByFarmer, deleteProduct)
 
 // only farmers can see it. 
