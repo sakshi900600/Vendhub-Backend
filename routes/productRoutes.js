@@ -16,4 +16,10 @@ router.get('/my-products', authorizeRoles('farmer'), productController.getMyProd
 // router.put('/update/:id', authorizeRoles('farmer'), productController.updateProduct);
 // router.delete('/delete/:id', authorizeRoles('farmer'), productController.deleteProduct);
 
+
+// Search farmer's products with optional keyword, category, and isActive filter
+router.get('/search-my-products', authorizeRoles('farmer'), productController.searchMyProducts);
+router.get('/all', productController.getAllProducts);
+
+
 module.exports = router;

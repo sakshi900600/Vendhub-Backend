@@ -75,3 +75,72 @@ exports.addProduct = async (req, res) => {
 };
 
 // You can add more product-related functions here (e.g., updateProduct, getProductsByFarmer, deleteProduct)
+
+// only farmers can see it. 
+exports.searchMyProducts = async (req, res) => {
+    try {
+        const farmerId = req.user.id;
+        const { keyword, category, isActive } = req.query;
+
+        const query = { owner: farmerId };
+
+        if (keyword) {
+            query.$text = { $search: keyword };
+        }
+
+        if (category) {
+            query.category = category;
+        }
+
+        if (isActive !== undefined) {
+            query.isActive = isActive === 'true';
+        }
+
+        const products = await Product.find(query);
+
+        res.status(200).json({
+            msg: 'Search results fetched successfully',
+            results: products
+        });
+    } catch (err) {
+        console.error('Error searching products:', err);
+        res.status(500).json({ msg: 'Server error while searching products.' });
+    }
+};
+
+
+// ✅ Anyone (like vendors) can use this to see all available products
+exports.getAllProducts = async (req, res) => {
+    try {
+        const { keyword, category, isActive } = req.query;
+
+        const query = {};
+
+        // Optional text search
+        if (keyword) {
+            query.$text = { $search: keyword };
+        }
+
+        // Optional filters
+        if (category) {
+            query.category = category;
+        }
+
+        if (isActive !== undefined) {
+            query.isActive = isActive === 'true';
+        }
+
+        const products = await Product.find(query).populate('owner', 'name email'); // if you want vendor to see who the farmer is
+
+        res.status(200).json({
+            msg: 'All products fetched successfully',
+            products
+        });
+    } catch (err) {
+        console.error('Error fetching all products:', err);
+        res.status(500).json({ msg: 'Server error while fetching all products.' });
+    }
+};
+
+
+
