@@ -16,7 +16,25 @@ const adminRoutes = require('./routes/adminRoutes'); // IMPORT NEW ADMIN ROUTES
 const app = express();
 
 // Middleware
-app.use(cors({ origin: true, credentials: true })); // Make sure this is configured correctly for your frontend origin
+const allowedOrigins = [
+    'http://localhost:5173', // Your local frontend dev server
+    'https://vendhub-frontend.vercel.app/', // <--- REPLACE THIS with your actual deployed frontend URL!
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
+
+
 app.use(express.json({ extended: false }));
 
 // MongoDB Connection
