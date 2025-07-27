@@ -75,7 +75,6 @@ exports.addProduct = async (req, res) => {
 };
 
 
-
 // Edit/Update a product (Only the owner farmer can edit)
 exports.editProduct = async (req, res) => {
     try {
@@ -106,11 +105,6 @@ exports.editProduct = async (req, res) => {
         res.status(500).json({ msg: 'Server error while editing product.' });
     }
 };
-
-
-
-
-
 
 
 

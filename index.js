@@ -1,44 +1,41 @@
 // D:\Hackathon\TutedudeHackathon\Backend\Backend\index.js
 
 const express = require('express');
-const mongoose = require('mongoose'); // Changed from connectDB
+const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 
-// Load environment variables from .env file
-// IMPORTANT: Adjust the path if your .env file is not in the project root
-// For example, if index.js is in Backend/Backend/ and .env is in Backend/, use:
-dotenv.config();
+dotenv.config(); // Load environment variables from .env file
 
-const authRoutes = require('./routes/authroutes'); // Corrected path
-const productRoutes = require('./routes/productRoutes'); // Corrected path
+const authRoutes = require('./routes/authroutes');
+const productRoutes = require('./routes/productRoutes');
 const requirementRoutes = require('./routes/requirementRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const adminRoutes = require('./routes/adminRoutes'); // IMPORT NEW ADMIN ROUTES
 
 const app = express();
 
 // Middleware
-
-app.use(cors());
-app.use(express.json());
-app.use('/api/requirements', requirementRoutes);
-app.use('/api/orders', orderRoutes);
+app.use(cors()); // Make sure this is configured correctly for your frontend origin
+app.use(express.json({ extended: false }));
 
 // MongoDB Connection
-// Replaced connectDB() with direct mongoose.connect()
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB connected successfully'))
     .catch(err => console.error('MongoDB connection error:', err));
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes); // Mount product routes under /api/products
+app.use('/api/products', productRoutes);
+app.use('/api/requirements', requirementRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/admin', adminRoutes); // USE NEW ADMIN ROUTES
 
 // Basic root route
 app.get('/', (req, res) => res.send('VendHub Backend API is running!'));
 
 // Start the server
-const PORT = process.env.PORT || 5000; // Use process.env.PORT or default to 5000
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
     console.log(`App is listening at port ${PORT}`)
 );

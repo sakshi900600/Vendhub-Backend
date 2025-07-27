@@ -87,7 +87,6 @@ exports.updateOrderStatus = async (req, res) => {
 
 
 
-
 // ✅ Farmer can view orders for their products
 exports.getOrdersForMyProducts = async (req, res) => {
     try {

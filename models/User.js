@@ -1,47 +1,59 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        trim: true // Added for cleaner data
+        trim: true
     },
     email: {
         type: String,
         required: true,
         unique: true,
-        trim: true, // Added for cleaner data
-        lowercase: true // Store emails in lowercase for consistency
+        trim: true,
+        lowercase: true
     },
     password: {
-        type: String, // This will store the hashed password
+        type: String,
         required: true,
     },
     role: {
         type: String,
-        enum: ['farmer', 'vendor', 'admin'], // Enforce specific roles
+        enum: ['farmer', 'vendor', 'admin'],
         required: true
     },
-    // --- Role-Specific Fields (Optional or Conditionally Required) ---
+    phoneNumber: {
+        type: String,
+        trim: true
+    },
+    profileImage: {
+        type: String,
+        trim: true
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    isApproved: {
+        type: Boolean,
+        default: false
+    },
+
+    // --- Role-Specific Fields ---
 
     // Fields specific to 'farmer' role
     farmName: {
         type: String,
-        // This field is required ONLY if the role is 'farmer'
         required: function() { return this.role === 'farmer'; },
         trim: true
     },
     farmLocation: {
         type: String,
-        // This field is required ONLY if the role is 'farmer'
         required: function() { return this.role === 'farmer'; },
         trim: true
     },
-    // You can add more farmer-specific fields here, e.g.,
-    // farmSize: Number,
-    // cropsGrown: [String],
-    // farmAddress (if you implement it for farmer as well, similar to vendor's companyAddress)
-    farmAddress: { // Added for farmer, assuming you'll use it later
+    farmAddress: {
         street: { type: String, trim: true },
         city: { type: String, trim: true },
         state: { type: String, trim: true },
@@ -51,7 +63,10 @@ const userSchema = new mongoose.Schema({
             longitude: { type: Number }
         }
     },
-    bankDetails: { // Added for farmer, assuming you'll use it later
+    farmSize: { type: Number },
+    cropsGrown: [{ type: String, trim: true }],
+    farmingType: { type: String, trim: true },
+    bankDetails: {
         accountNumber: { type: String, trim: true },
         ifscCode: { type: String, trim: true },
         bankName: { type: String, trim: true },
@@ -61,35 +76,35 @@ const userSchema = new mongoose.Schema({
     // Fields specific to 'vendor' role
     companyName: {
         type: String,
-        // This field is required ONLY if the role is 'vendor'
         required: function() { return this.role === 'vendor'; },
         trim: true
     },
-    // ✅ CORRECTED: Define companyAddress as an object with nested fields
-    companyAddress: {
+    businessAddress: {
+        // FIX: Removed 'required' from sub-fields to allow saving existing users
+        // that might not have these fields populated.
         street: {
             type: String,
-            required: function() { return this.role === 'vendor'; }, // Make street required for vendor
+            // required: function() { return this.role === 'vendor'; }, // REMOVED THIS LINE
             trim: true
         },
         city: {
             type: String,
-            required: function() { return this.role === 'vendor'; }, // Make city required for vendor
+            // required: function() { return this.role === 'vendor'; }, // REMOVED THIS LINE
             trim: true
         },
         state: {
             type: String,
-            required: function() { return this.role === 'vendor'; }, // Make state required for vendor
+            // required: function() { return this.role === 'vendor'; }, // REMOVED THIS LINE
             trim: true
         },
         pincode: {
-            type: String, // Pincode can be a string if it contains non-numeric characters or leading zeros
-            required: function() { return this.role === 'vendor'; }, // Make pincode required for vendor
+            type: String,
+            // required: function() { return this.role === 'vendor'; }, // REMOVED THIS LINE
             trim: true
         },
-        coordinates: { // Nested object for coordinates
-            latitude: { type: Number }, // Optional, as per frontend
-            longitude: { type: Number } // Optional, as per frontend
+        coordinates: {
+            latitude: { type: Number },
+            longitude: { type: Number }
         }
     },
     businessType: {
@@ -106,9 +121,9 @@ const userSchema = new mongoose.Schema({
         trim: true
     },
     businessHours: {
-        opening: { type: String, trim: true }, // Store as string (e.g., "HH:MM AM/PM")
+        opening: { type: String, trim: true },
         closing: { type: String, trim: true },
-        daysOpen: [{ type: String, trim: true }] // Array of strings (e.g., ["monday", "tuesday"])
+        daysOpen: [{ type: String, trim: true }]
     },
 
     // Fields specific to 'admin' role
@@ -118,11 +133,24 @@ const userSchema = new mongoose.Schema({
         required: function() { return this.role === 'admin'; },
         trim: true
     },
-    permissions: [{ // Array of strings for permissions
+    permissions: [{
         type: String,
         trim: true
     }],
 
-}, { timestamps: true }); // Keep timestamps for createdAt and updatedAt
+}, { timestamps: true });
+
+userSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) {
+        next();
+    }
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+});
+
+userSchema.methods.matchPassword = async function (enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
+};
 
 module.exports = mongoose.model('User', userSchema);
