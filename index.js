@@ -17,21 +17,31 @@ const app = express();
 
 // Middleware
 const allowedOrigins = [
-    'http://localhost:5173', // Your local frontend dev server
-    'https://vendhub-frontend.vercel.app/', // <--- REPLACE THIS with your actual deployed frontend URL!
+    'http://localhost:5173', // Your local frontend dev server (Vite default)
+    'http://localhost:3000', // Common React dev server port (if you use CRA)
+    'https://vendhub-frontend.vercel.app', // **IMPORTANT: Frontend deployed URL WITHOUT trailing slash**
+    'https://vendhub-frontend.vercel.app/', // **IMPORTANT: Frontend deployed URL WITH trailing slash**
+    // Make sure to add your *exact* deployed frontend URL here.
+    // If your frontend is deployed under a different URL (e.g., a custom domain), add that too.
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    // This log is crucial for debugging. Check your Vercel backend logs for the exact 'origin' string.
+    console.log('CORS Request Origin:', origin); 
+
+    // Allow requests with no origin (like mobile apps, curl, or if it's a same-origin request from Vercel's internal routing)
+    // and requests from the allowedOrigins list
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      console.warn('CORS Blocked: Origin not in allowed list:', origin);
+      callback(new Error(`Not allowed by CORS: ${origin}`)); // Add origin to error message for clarity
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Ensure all necessary methods are allowed
+  allowedHeaders: ['Content-Type', 'Authorization'], // Ensure all necessary headers are allowed
+  credentials: true, // Allow cookies, authorization headers, etc.
 }));
 
 
@@ -40,7 +50,11 @@ app.use(express.json({ extended: false }));
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB connected successfully'))
-    .catch(err => console.error('MongoDB connection error:', err));
+    .catch(err => {
+        console.error('MongoDB connection error:', err);
+        // In production, consider exiting the process if DB connection fails
+        // process.exit(1); 
+    });
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -53,16 +67,11 @@ app.use('/api/admin', adminRoutes); // USE NEW ADMIN ROUTES
 app.get('/', (req, res) => res.send('VendHub Backend API is running!'));
 
 // Start the server
-// const PORT = process.env.PORT || 5000;
-// app.listen(PORT, () =>
-//     console.log(`App is listening at port ${PORT}`)
-// );
-
-
+// This conditional app.listen is for Vercel deployment where Express app is exported
+// and local development where it listens on a port.
 if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000
-  app.listen(PORT, () => console.log(`Listening on ${PORT}`))
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 }
 
-
-module.exports = app  
+module.exports = app;
